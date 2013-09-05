@@ -31,6 +31,7 @@ mxmlc "bin/simplayer.swf" do |t|
   t.input = "src/Simplayer.as"
   t.static_link_runtime_shared_libraries = true
   t.library_path << 'lib/OSMF.swc'
+  t.library_path << 'lib/MSAdaptiveStreamingPlugin-v1.0.3-osmf2.0.swc'
 end
 
 desc "Compile the swf"
@@ -45,6 +46,7 @@ mxmlc "bin/Simplayer-debug.swf" do |t|
   t.static_link_runtime_shared_libraries = true
   t.debug = true
   t.library_path << 'lib/OSMF.swc'
+  t.library_path << 'lib/MSAdaptiveStreamingPlugin-v1.0.3-osmf2.0.swc'
 end
 
 desc "Compile and run the debug swf"
