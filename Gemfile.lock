@@ -6,7 +6,7 @@ GEM
     flashsdk (1.1.36.pre)
       sprout (>= 1.1.18.pre)
     open4 (1.3.0)
-    rake (10.0.3)
+    rake (10.1.0)
     rubyzip (0.9.4)
     sprout (1.1.18.pre)
       archive-tar-minitar (= 0.5.2)
@@ -19,5 +19,5 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  asunit4 (>= 4.2.3.pre)
-  flashsdk (>= 1.0.0.pre)
+  asunit4
+  flashsdk
