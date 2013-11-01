@@ -56,9 +56,9 @@ package
 
         private function onPluginLoaded( event:MediaFactoryEvent ):void
         {
-            // The plugin is loaded successfully.
-            // Your web server needs to host a valid crossdomain.xml file to allow plugin to download Smooth Streaming files.
-            loadMediaSource("http://devplatem.vo.msecnd.net/Sintel/Sintel_H264.ism/manifest")
+            var parameters:Object = LoaderInfo(this.root.loaderInfo).parameters;
+            if ("src" in parameters)
+                loadMediaSource(parameters["src"])
         }
 
         private function onPluginLoadFailed( event:MediaFactoryEvent ):void

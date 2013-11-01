@@ -2,14 +2,21 @@
 <html>
 
 <head>
-    <script type="text/javascript" src="js/jquery.min.js"></script>
-    <script type="text/javascript" src="js/swfobject.js"></script>
+    <script type='text/javascript' src='js/jquery.min.js'></script>
+    <script type='text/javascript' src='js/swfobject.js'></script>
     <script>
 
 function play() {
     try {
         $('#stage').empty();
-        swfobject.embedSWF("bin/simplayer.swf", "stage", "1280", "720", "10.0.0");
+        // this should not be used in production - the CDN access is supposed to be used on server side only
+        var videoId = 10004650;
+        var accessToken = 'globosatcoregrupo205f1cef979068fc6ec0d8';
+        var cdnUrl = 'http://api.video.qa01.globoi.com/videos/' + videoId + '/hash?player=smoothstreaming&version=&access_token=' + accessToken + '&callback=?';
+        $.getJSON(cdnUrl, function(data) {
+            console.log(data.cdn_urls[0]);
+            swfobject.embedSWF('bin/simplayer.swf', 'stage',  '640', '360', '10.0.0', 'expressInstall.swf', {src: encodeURIComponent(data.cdn_urls[0])});
+        });
     } catch (err) {
         console.log('oh oh');
         console.log(err);
