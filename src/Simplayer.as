@@ -7,6 +7,8 @@ package {
 
   import flash.external.ExternalInterface;
 
+  import flash.system.Security;
+
   import flash.ui.Keyboard;
 
   import org.osmf.elements.F4MElement;
@@ -40,6 +42,8 @@ package {
     public var resource:URLResource;
 
     public function Simplayer() {
+      Security.allowDomain("*");
+      Security.allowInsecureDomain("*");
       parameters = LoaderInfo(this.root.loaderInfo).parameters;
 
 //      if ("src" in parameters)
