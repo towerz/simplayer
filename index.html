@@ -9,7 +9,8 @@
 function play() {
     try {
         $('#stage').empty();
-        swfobject.embedSWF("bin/simplayer.swf", "stage", "1280", "720", "10.0.0");
+        var flashvars = {width: 640, height: 360};
+        swfobject.embedSWF("bin/simplayer.swf", "stage", "640", "360", "10.0.0", "expressInstall.swf", flashvars);
     } catch (err) {
         console.log('oh oh');
         console.log(err);
