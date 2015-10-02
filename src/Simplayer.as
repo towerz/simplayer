@@ -40,25 +40,83 @@ package {
     public var playerSprite:MediaPlayerSprite;
     public var metadata:Object;
     public var resource:URLResource;
+    public var audios:Object;
 
     public function Simplayer() {
       Security.allowDomain("*");
       Security.allowInsecureDomain("*");
       parameters = LoaderInfo(this.root.loaderInfo).parameters;
-      addExternalCallbacks();
+      _addExternalCallbacks();
+      _addExternalGetters();
       ("src" in parameters) && (src = parameters["src"]);
-      src && load(src);
-      for(var id:String in parameters) {
-        var value:Object = parameters[id];
-        log(id + " = " + value);
+      src && _load(src);
+    }
+
+    protected function _addExternalCallbacks():void {
+      ExternalInterface.addCallback('playerLoad', _load);
+      ExternalInterface.addCallback('playerPlay', _play);
+      ExternalInterface.addCallback('playerPause', _pause);
+      ExternalInterface.addCallback('playerSelectAudioItem', _selectAudioItem);
+    }
+
+    protected function _addExternalGetters():void {
+      ExternalInterface.addCallback('getDuration', _getDuration);
+      ExternalInterface.addCallback('getPosition', _getPosition);
+      ExternalInterface.addCallback('getAudioItem', _getAudioItem);
+      ExternalInterface.addCallback('getAudioItemCount', _getAudioItemCount);
+      ExternalInterface.addCallback('canPlay', _canPlay);
+      ExternalInterface.addCallback('isPlaying', _isPlaying);
+    }
+
+    protected function _getDuration():Number {
+      return playerSprite.mediaPlayer.duration;
+    }
+
+    protected function _getPosition():Number {
+      return playerSprite.mediaPlayer.currentTime;
+    }
+
+    protected function _getAudioItem(index:int):Object {
+      if (index === 0) {
+        return {type: "audio", info: { label: "default", language: "und"}};
+      }
+      return playerSprite.mediaPlayer.getAlternativeAudioItemAt(index - 1);
+    }
+
+    protected function _getAudioItemCount():int {
+      if (playerSprite.mediaPlayer.hasAlternativeAudio) {
+        return 1 + playerSprite.mediaPlayer.numAlternativeAudioStreams;
+      }
+      return 1;
+    }
+
+    protected function _isPlaying():Boolean {
+      return playerSprite.mediaPlayer.playing;
+    }
+
+    protected function _canPlay():Boolean {
+      return playerSprite.mediaPlayer.canPlay;
+    }
+
+    protected function _play():void {
+      if (!_isPlaying() && _canPlay()) {
+        playerSprite.mediaPlayer.play();
       }
     }
 
-    protected function addExternalCallbacks():void {
-      ExternalInterface.addCallback('load', load);
+    protected function _pause():void {
+      if (_isPlaying()) {
+        playerSprite.mediaPlayer.pause();
+      }
     }
 
-    protected function load(url:String):void {
+    protected function _selectAudioItem(index: int):void {
+      if (index <= playerSprite.mediaPlayer.numAlternativeAudioStreams) {
+        playerSprite.mediaPlayer.switchAlternativeAudioIndex(index - 1);
+      }
+    }
+
+    protected function _load(url:String):void {
       src = url;
       if (!!stage) {
         init();
