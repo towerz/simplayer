@@ -31,7 +31,7 @@ package {
 
   import org.osmf.traits.MediaTraitType;
 
-  [SWF(width="1280", height="720")]
+  [SWF(width="640", height="360")]
   public class Simplayer extends MovieClip {
     public var parameters:Object;
     public var src:String;
@@ -92,7 +92,8 @@ package {
       playerSprite.mediaPlayer.autoPlay = true;
       playerSprite.mediaPlayer.addEventListener(MediaPlayerCapabilityChangeEvent.HAS_ALTERNATIVE_AUDIO_CHANGE, hasAlternativeAudioChanged);
       playerSprite.mediaPlayer.addEventListener(AlternativeAudioEvent.AUDIO_SWITCHING_CHANGE, alternativeAudioSwitchChanged);
-
+      playerSprite.width = parameters.width || 640;
+      playerSprite.height = parameters.height || 360;
       addChild(playerSprite);
     }
 
@@ -115,7 +116,7 @@ package {
       if (!playerSprite.mediaPlayer.paused && playerSprite.mediaPlayer.canPause)
         playerSprite.mediaPlayer.pause();
       else if (!playerSprite.mediaPlayer.playing && playerSprite.mediaPlayer.canPlay)
-        playerSprite.mediaPlayer.play();      
+        playerSprite.mediaPlayer.play();
     }
 
     protected function swapLanguagePressed():void {
