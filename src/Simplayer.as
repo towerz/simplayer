@@ -133,7 +133,7 @@ package {
     protected function init():void {
       removeEventListener(Event.ADDED_TO_STAGE, init);
       initPlayer();
-      stage.addEventListener(KeyboardEvent.KEY_UP, keyUpHandler);
+      parameters.enableKeyboardShortcuts && stage.addEventListener(KeyboardEvent.KEY_UP, keyUpHandler);
       log("ready to play: " + src);
     }
 
