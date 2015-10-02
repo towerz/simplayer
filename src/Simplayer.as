@@ -45,26 +45,31 @@ package {
       Security.allowDomain("*");
       Security.allowInsecureDomain("*");
       parameters = LoaderInfo(this.root.loaderInfo).parameters;
+      addExternalCallbacks();
+      ("src" in parameters) && (src = parameters["src"]);
+      src && load(src);
+      for(var id:String in parameters) {
+        var value:Object = parameters[id];
+        log(id + " = " + value);
+      }
+    }
 
-//      if ("src" in parameters)
-//        src = parameters["src"];
-//      else
-//        src = "http://lvh.me/tmp/eugenia.mp4";
-//        src = "http://lvh.me/tmp/bial-hds.f4m#fallback_source";
-//        src = "http://ec2-23-20-247-100.compute-1.amazonaws.com/hds-vod-drm/tcplay/748579-comeco.mp4.f4m";
+    protected function addExternalCallbacks():void {
+      ExternalInterface.addCallback('load', load);
+    }
 
-      src = "http://vimeo.com/24543244/download?t=1363121492&v=53197526&s=5d32f116bf8c620fda95b8303527d991";
-
-      if (!!stage)
+    protected function load(url:String):void {
+      src = url;
+      if (!!stage) {
         init();
-      else
+      } else {
         addEventListener(Event.ADDED_TO_STAGE, init);
+      }
     }
 
     protected function log(message:String):void {
       trace(message);
-      if (ExternalInterface.available)
-        ExternalInterface.call("console.log", message);
+      ExternalInterface.available && ExternalInterface.call("console.log", message)
     }
 
     protected function init():void {
@@ -77,10 +82,6 @@ package {
     protected function initPlayer():void {
       resource = new URLResource(src);
       mediaFactory = new DefaultMediaFactory();
-
-//      var element:SerialElement = new SerialElement();
-//      element.addChild(mediaFactory.createMediaElement(resource));
-//      element.addChild(mediaFactory.createMediaElement(resource));
 
       var element:MediaElement = mediaFactory.createMediaElement(resource);
 
