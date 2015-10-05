@@ -11,9 +11,6 @@ package {
 
   import flash.ui.Keyboard;
 
-  import org.osmf.elements.F4MElement;
-  import org.osmf.elements.SerialElement;
-
   import org.osmf.events.AlternativeAudioEvent;
   import org.osmf.events.LoadEvent;
   import org.osmf.events.MediaElementEvent;
@@ -26,30 +23,25 @@ package {
   import org.osmf.media.MediaPlayerSprite;
   import org.osmf.media.URLResource;
 
-  import org.osmf.metadata.Metadata;
-  import org.osmf.metadata.MetadataNamespaces;
-
   import org.osmf.traits.MediaTraitType;
 
   [SWF(width="640", height="360")]
   public class Simplayer extends MovieClip {
-    public var parameters:Object;
-    public var src:String;
+    protected var _parameters:Object;
+    protected var _src:String;
 
-    public var mediaFactory:MediaFactory;
-    public var playerSprite:MediaPlayerSprite;
-    public var metadata:Object;
-    public var resource:URLResource;
-    public var audios:Object;
+    protected var _mediaFactory:MediaFactory;
+    protected var _playerSprite:MediaPlayerSprite;
+    protected var _resource:URLResource;
+    protected var _audios:Object;
 
     public function Simplayer() {
       Security.allowDomain("*");
       Security.allowInsecureDomain("*");
-      parameters = LoaderInfo(this.root.loaderInfo).parameters;
+      _parameters = LoaderInfo(this.root.loaderInfo).parameters;
       _addExternalCallbacks();
       _addExternalGetters();
-      ("src" in parameters) && (src = parameters["src"]);
-      src && _load(src);
+      ("src" in _parameters) && _load(_parameters["src"]);
     }
 
     protected function _addExternalCallbacks():void {
@@ -69,55 +61,57 @@ package {
     }
 
     protected function _getDuration():Number {
-      return playerSprite.mediaPlayer.duration;
+      return _playerSprite.mediaPlayer.duration;
     }
 
     protected function _getPosition():Number {
-      return playerSprite.mediaPlayer.currentTime;
+      return _playerSprite.mediaPlayer.currentTime;
+    }
     }
 
     protected function _getAudioItem(index:int):Object {
       if (index === 0) {
         return {type: "audio", info: { label: "default", language: "und"}};
       }
-      return playerSprite.mediaPlayer.getAlternativeAudioItemAt(index - 1);
+      return _playerSprite.mediaPlayer.getAlternativeAudioItemAt(index - 1);
     }
 
     protected function _getAudioItemCount():int {
-      if (playerSprite.mediaPlayer.hasAlternativeAudio) {
-        return 1 + playerSprite.mediaPlayer.numAlternativeAudioStreams;
+      if (_playerSprite.mediaPlayer.hasAlternativeAudio) {
+        return 1 + _playerSprite.mediaPlayer.numAlternativeAudioStreams;
       }
       return 1;
     }
 
     protected function _isPlaying():Boolean {
-      return playerSprite.mediaPlayer.playing;
+      return _playerSprite.mediaPlayer.playing;
     }
 
     protected function _canPlay():Boolean {
-      return playerSprite.mediaPlayer.canPlay;
+      return _playerSprite.mediaPlayer.canPlay;
     }
 
     protected function _play():void {
       if (!_isPlaying() && _canPlay()) {
-        playerSprite.mediaPlayer.play();
+        _playerSprite.mediaPlayer.play();
       }
     }
 
     protected function _pause():void {
-      if (_isPlaying()) {
-        playerSprite.mediaPlayer.pause();
+      if (_isPlaying() && _canPause()) {
+        _playerSprite.mediaPlayer.pause();
       }
     }
 
     protected function _selectAudioItem(index: int):void {
-      if (index <= playerSprite.mediaPlayer.numAlternativeAudioStreams) {
-        playerSprite.mediaPlayer.switchAlternativeAudioIndex(index - 1);
+      if (index !== _playerSprite.mediaPlayer.currentAlternativeAudioStreamIndex + 1 &&
+          index <= _playerSprite.mediaPlayer.numAlternativeAudioStreams) {
+        _playerSprite.mediaPlayer.switchAlternativeAudioIndex(index - 1);
       }
     }
 
     protected function _load(url:String):void {
-      src = url;
+      _src = url;
       if (!!stage) {
         init();
       } else {
@@ -133,27 +127,27 @@ package {
     protected function init():void {
       removeEventListener(Event.ADDED_TO_STAGE, init);
       initPlayer();
-      parameters.enableKeyboardShortcuts && stage.addEventListener(KeyboardEvent.KEY_UP, keyUpHandler);
-      log("ready to play: " + src);
+      _parameters.enableKeyboardShortcuts && stage.addEventListener(KeyboardEvent.KEY_UP, keyUpHandler);
+      log("ready to play: " + _src);
     }
 
     protected function initPlayer():void {
-      resource = new URLResource(src);
-      mediaFactory = new DefaultMediaFactory();
+      _resource = new URLResource(_src);
+      _mediaFactory = new DefaultMediaFactory();
 
-      var element:MediaElement = mediaFactory.createMediaElement(resource);
+      var element:MediaElement = _mediaFactory.createMediaElement(_resource);
 
       log("has time trait: " + element.hasTrait(MediaTraitType.TIME));
 
-      playerSprite = new MediaPlayerSprite();
-      playerSprite.media = element;
+      _playerSprite = new MediaPlayerSprite();
+      _playerSprite.media = element;
 
-      playerSprite.mediaPlayer.autoPlay = true;
-      playerSprite.mediaPlayer.addEventListener(MediaPlayerCapabilityChangeEvent.HAS_ALTERNATIVE_AUDIO_CHANGE, hasAlternativeAudioChanged);
-      playerSprite.mediaPlayer.addEventListener(AlternativeAudioEvent.AUDIO_SWITCHING_CHANGE, alternativeAudioSwitchChanged);
-      playerSprite.width = parameters.width || 640;
-      playerSprite.height = parameters.height || 360;
-      addChild(playerSprite);
+      _playerSprite.mediaPlayer.autoPlay = true;
+      _playerSprite.mediaPlayer.addEventListener(MediaPlayerCapabilityChangeEvent.HAS_ALTERNATIVE_AUDIO_CHANGE, hasAlternativeAudioChanged);
+      _playerSprite.mediaPlayer.addEventListener(AlternativeAudioEvent.AUDIO_SWITCHING_CHANGE, alternativeAudioSwitchChanged);
+      _playerSprite.width = _parameters.width || 640;
+      _playerSprite.height = _parameters.height || 360;
+      addChild(_playerSprite);
     }
 
     protected function keyUpHandler(e:KeyboardEvent):void {
@@ -172,23 +166,23 @@ package {
     }
 
     protected function playPausePressed():void {
-      if (!playerSprite.mediaPlayer.paused && playerSprite.mediaPlayer.canPause)
-        playerSprite.mediaPlayer.pause();
-      else if (!playerSprite.mediaPlayer.playing && playerSprite.mediaPlayer.canPlay)
-        playerSprite.mediaPlayer.play();
+      if (!_playerSprite.mediaPlayer.paused && _playerSprite.mediaPlayer.canPause)
+        _playerSprite.mediaPlayer.pause();
+      else if (!_playerSprite.mediaPlayer.playing && _playerSprite.mediaPlayer.canPlay)
+        _playerSprite.mediaPlayer.play();
     }
 
     protected function swapLanguagePressed():void {
-      if (!playerSprite.mediaPlayer.alternativeAudioStreamSwitching && playerSprite.mediaPlayer.hasAlternativeAudio) {
-        var current:int = playerSprite.mediaPlayer.currentAlternativeAudioStreamIndex;
-        var total:int = playerSprite.mediaPlayer.numAlternativeAudioStreams;
+      if (!_playerSprite.mediaPlayer.alternativeAudioStreamSwitching && _playerSprite.mediaPlayer.hasAlternativeAudio) {
+        var current:int = _playerSprite.mediaPlayer.currentAlternativeAudioStreamIndex;
+        var total:int = _playerSprite.mediaPlayer.numAlternativeAudioStreams;
         var next:int = current + 1;
 
         log("next language: " + audioLanguage(next));
         if (next < total) {
-          playerSprite.mediaPlayer.switchAlternativeAudioIndex(next);
+          _playerSprite.mediaPlayer.switchAlternativeAudioIndex(next);
         } else {
-          playerSprite.mediaPlayer.switchAlternativeAudioIndex(-1);
+          _playerSprite.mediaPlayer.switchAlternativeAudioIndex(-1);
         }
       } else {
         log("cannot change language");
@@ -200,8 +194,7 @@ package {
     }
 
     protected function alternativeAudioSwitchChanged(e:AlternativeAudioEvent):void {
-      var current:int = playerSprite.mediaPlayer.currentAlternativeAudioStreamIndex;
-
+      var current:int = _playerSprite.mediaPlayer.currentAlternativeAudioStreamIndex;
       if (e.switching) {
         log("audio switching began - exiting: " + currentAudioLanguage());
       } else {
@@ -210,16 +203,16 @@ package {
     }
 
     protected function audioLanguage(languageIndex:int):String {
-      var total:int = playerSprite.mediaPlayer.numAlternativeAudioStreams;
+      var total:int = _playerSprite.mediaPlayer.numAlternativeAudioStreams;
       if (languageIndex > -1 && languageIndex < total) {
-        return playerSprite.mediaPlayer.getAlternativeAudioItemAt(languageIndex).info.label;
+        return _playerSprite.mediaPlayer.getAlternativeAudioItemAt(languageIndex).info.label;
       } else {
         return "default";
       }
     }
 
     protected function currentAudioLanguage():String {
-      return audioLanguage(playerSprite.mediaPlayer.currentAlternativeAudioStreamIndex);
+      return audioLanguage(_playerSprite.mediaPlayer.currentAlternativeAudioStreamIndex);
     }
   }
 }
