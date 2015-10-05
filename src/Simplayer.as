@@ -48,16 +48,32 @@ package {
       ExternalInterface.addCallback('playerLoad', _load);
       ExternalInterface.addCallback('playerPlay', _play);
       ExternalInterface.addCallback('playerPause', _pause);
+      ExternalInterface.addCallback('playerSeek', _seek);
       ExternalInterface.addCallback('playerSelectAudioItem', _selectAudioItem);
+      ExternalInterface.addCallback('playerSetVolume', _setVolume);
     }
 
     protected function _addExternalGetters():void {
       ExternalInterface.addCallback('getDuration', _getDuration);
       ExternalInterface.addCallback('getPosition', _getPosition);
+      ExternalInterface.addCallback('getVolume', _getVolume);
       ExternalInterface.addCallback('getAudioItem', _getAudioItem);
       ExternalInterface.addCallback('getAudioItemCount', _getAudioItemCount);
+      ExternalInterface.addCallback('getBytesLoaded', _getBytesLoaded);
+      ExternalInterface.addCallback('getBytesTotal', _getBytesTotal);
       ExternalInterface.addCallback('canPlay', _canPlay);
+      ExternalInterface.addCallback('canPause', _canPause);
+      ExternalInterface.addCallback('canSeek', _canSeek);
+      ExternalInterface.addCallback('isMuted', _isMuted);
       ExternalInterface.addCallback('isPlaying', _isPlaying);
+    }
+
+    protected function _getBytesLoaded():Number {
+      return _playerSprite.mediaPlayer.bytesLoaded;
+    }
+
+    protected function _getBytesTotal():Number {
+      return _playerSprite.mediaPlayer.bytesTotal;
     }
 
     protected function _getDuration():Number {
@@ -67,6 +83,9 @@ package {
     protected function _getPosition():Number {
       return _playerSprite.mediaPlayer.currentTime;
     }
+
+    protected function _getVolume(): Number {
+      return _playerSprite.mediaPlayer.volume;
     }
 
     protected function _getAudioItem(index:int):Object {
@@ -83,12 +102,24 @@ package {
       return 1;
     }
 
+    protected function _isMuted():Boolean {
+      return _playerSprite.mediaPlayer.muted;
+    }
+
     protected function _isPlaying():Boolean {
       return _playerSprite.mediaPlayer.playing;
     }
 
     protected function _canPlay():Boolean {
       return _playerSprite.mediaPlayer.canPlay;
+    }
+
+    protected function _canPause():Boolean {
+      return _playerSprite.mediaPlayer.canPause;
+    }
+
+    protected function _canSeek():Boolean {
+      return _playerSprite.mediaPlayer.canSeek;
     }
 
     protected function _play():void {
@@ -103,11 +134,21 @@ package {
       }
     }
 
+    protected function _seek(time: Number):void {
+      if (_canSeek()) {
+        _playerSprite.mediaPlayer.seek(time);
+      }
+    }
+
     protected function _selectAudioItem(index: int):void {
       if (index !== _playerSprite.mediaPlayer.currentAlternativeAudioStreamIndex + 1 &&
           index <= _playerSprite.mediaPlayer.numAlternativeAudioStreams) {
         _playerSprite.mediaPlayer.switchAlternativeAudioIndex(index - 1);
       }
+    }
+
+    protected function _setVolume(volume: Number): void {
+      _playerSprite.mediaPlayer.volume = volume;
     }
 
     protected function _load(url:String):void {
@@ -152,7 +193,6 @@ package {
 
     protected function keyUpHandler(e:KeyboardEvent):void {
       log("key: " + e.keyCode);
-
       switch (e.keyCode) {
         case (Keyboard.SPACE):
           playPausePressed();
@@ -191,6 +231,7 @@ package {
 
     protected function hasAlternativeAudioChanged(e:MediaPlayerCapabilityChangeEvent):void {
       log("hasAlternativeAudioChanged - enabled: " + e.enabled);
+      // trigger audios
     }
 
     protected function alternativeAudioSwitchChanged(e:AlternativeAudioEvent):void {
