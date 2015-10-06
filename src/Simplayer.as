@@ -4,8 +4,11 @@ package {
 
   import flash.events.Event;
   import flash.events.KeyboardEvent;
+  import flash.events.MouseEvent;
 
   import flash.external.ExternalInterface;
+
+  import flash.geom.Rectangle;
 
   import flash.system.Security;
 
@@ -16,6 +19,7 @@ package {
   import org.osmf.events.MediaElementEvent;
   import org.osmf.events.MediaPlayerCapabilityChangeEvent;
   import org.osmf.events.MediaPlayerStateChangeEvent;
+  import org.osmf.events.TimeEvent;
 
   import org.osmf.media.DefaultMediaFactory;
   import org.osmf.media.MediaElement;
@@ -29,6 +33,7 @@ package {
   public class Simplayer extends MovieClip {
     protected var _parameters:Object;
     protected var _src:String;
+    protected var _callbackName:String;
 
     protected var _mediaFactory:MediaFactory;
     protected var _playerSprite:MediaPlayerSprite;
@@ -38,34 +43,44 @@ package {
     public function Simplayer() {
       Security.allowDomain("*");
       Security.allowInsecureDomain("*");
+      ExternalInterface.marshallExceptions = true;
       _parameters = LoaderInfo(this.root.loaderInfo).parameters;
+      _callbackName = _parameters["callback"];
       _addExternalCallbacks();
       _addExternalGetters();
       ("src" in _parameters) && _load(_parameters["src"]);
     }
 
+    protected function _addEventListeners():void {
+      _playerSprite.mediaPlayer.addEventListener(MediaPlayerStateChangeEvent.MEDIA_PLAYER_STATE_CHANGE, _onStateChanged);
+      _playerSprite.mediaPlayer.addEventListener(TimeEvent.CURRENT_TIME_CHANGE, _onCurrentTimeChanged);
+      _playerSprite.mediaPlayer.addEventListener(TimeEvent.COMPLETE, _onComplete);
+    }
+
     protected function _addExternalCallbacks():void {
-      ExternalInterface.addCallback('playerLoad', _load);
-      ExternalInterface.addCallback('playerPlay', _play);
-      ExternalInterface.addCallback('playerPause', _pause);
-      ExternalInterface.addCallback('playerSeek', _seek);
-      ExternalInterface.addCallback('playerSelectAudioItem', _selectAudioItem);
-      ExternalInterface.addCallback('playerSetVolume', _setVolume);
+      ExternalInterface.addCallback("playerLoad", _load);
+      ExternalInterface.addCallback("playerPlay", _play);
+      ExternalInterface.addCallback("playerPause", _pause);
+      ExternalInterface.addCallback("playerSeek", _seek);
+      ExternalInterface.addCallback("playerStop", _stop);
+      ExternalInterface.addCallback("playerSelectAudioItem", _selectAudioItem);
+      ExternalInterface.addCallback("playerSetVolume", _setVolume);
     }
 
     protected function _addExternalGetters():void {
-      ExternalInterface.addCallback('getDuration', _getDuration);
-      ExternalInterface.addCallback('getPosition', _getPosition);
-      ExternalInterface.addCallback('getVolume', _getVolume);
-      ExternalInterface.addCallback('getAudioItem', _getAudioItem);
-      ExternalInterface.addCallback('getAudioItemCount', _getAudioItemCount);
-      ExternalInterface.addCallback('getBytesLoaded', _getBytesLoaded);
-      ExternalInterface.addCallback('getBytesTotal', _getBytesTotal);
-      ExternalInterface.addCallback('canPlay', _canPlay);
-      ExternalInterface.addCallback('canPause', _canPause);
-      ExternalInterface.addCallback('canSeek', _canSeek);
-      ExternalInterface.addCallback('isMuted', _isMuted);
-      ExternalInterface.addCallback('isPlaying', _isPlaying);
+      ExternalInterface.addCallback("getDuration", _getDuration);
+      ExternalInterface.addCallback("getPosition", _getPosition);
+      ExternalInterface.addCallback("getVolume", _getVolume);
+      ExternalInterface.addCallback("getCurrentAudioItem", _getCurrentAudioItem);
+      ExternalInterface.addCallback("getAudioItem", _getAudioItem);
+      ExternalInterface.addCallback("getAudioItemCount", _getAudioItemCount);
+      ExternalInterface.addCallback("getBytesLoaded", _getBytesLoaded);
+      ExternalInterface.addCallback("getBytesTotal", _getBytesTotal);
+      ExternalInterface.addCallback("canPlay", _canPlay);
+      ExternalInterface.addCallback("canPause", _canPause);
+      ExternalInterface.addCallback("canSeek", _canSeek);
+      ExternalInterface.addCallback("isMuted", _isMuted);
+      ExternalInterface.addCallback("isPlaying", _isPlaying);
     }
 
     protected function _getBytesLoaded():Number {
@@ -102,6 +117,14 @@ package {
       return 1;
     }
 
+    protected function _getCurrentAudioItemIndex():Number {
+      return _playerSprite.mediaPlayer.currentAlternativeAudioStreamIndex;
+    }
+
+    protected function _getCurrentAudioItem():Object {
+      return _getAudioItem(_playerSprite.mediaPlayer.currentAlternativeAudioStreamIndex);
+    }
+
     protected function _isMuted():Boolean {
       return _playerSprite.mediaPlayer.muted;
     }
@@ -134,6 +157,12 @@ package {
       }
     }
 
+    protected function _stop():void {
+      if (_isPlaying()) {
+        _playerSprite.mediaPlayer.stop();
+      }
+    }
+
     protected function _seek(time: Number):void {
       if (_canSeek()) {
         _playerSprite.mediaPlayer.seek(time);
@@ -160,6 +189,19 @@ package {
       }
     }
 
+    protected function _onStageResize(event : Event) : void {
+      stage.fullScreenSourceRect = new Rectangle(0, 0, stage.stageWidth, stage.stageHeight);
+      _playerSprite.width = stage.stageWidth;
+      _playerSprite.height = stage.stageHeight;
+    };
+
+    protected function _trigger(event : String, ...args) : void {
+      log("triggering " + event);
+      if (ExternalInterface.available && _callbackName) {
+        ExternalInterface.call(_callbackName, event, args);
+      }
+    };
+
     protected function log(message:String):void {
       trace(message);
       ExternalInterface.available && ExternalInterface.call("console.log", message)
@@ -167,6 +209,7 @@ package {
 
     protected function init():void {
       removeEventListener(Event.ADDED_TO_STAGE, init);
+      stage.addEventListener(Event.RESIZE, _onStageResize);
       initPlayer();
       _parameters.enableKeyboardShortcuts && stage.addEventListener(KeyboardEvent.KEY_UP, keyUpHandler);
       log("ready to play: " + _src);
@@ -189,6 +232,7 @@ package {
       _playerSprite.width = _parameters.width || 640;
       _playerSprite.height = _parameters.height || 360;
       addChild(_playerSprite);
+      _addEventListeners();
     }
 
     protected function keyUpHandler(e:KeyboardEvent):void {
@@ -231,7 +275,7 @@ package {
 
     protected function hasAlternativeAudioChanged(e:MediaPlayerCapabilityChangeEvent):void {
       log("hasAlternativeAudioChanged - enabled: " + e.enabled);
-      // trigger audios
+      _trigger("hasAlternativeAudioChanged", e.enabled);
     }
 
     protected function alternativeAudioSwitchChanged(e:AlternativeAudioEvent):void {
@@ -241,6 +285,22 @@ package {
       } else {
         log("audio switching ended - now: " + currentAudioLanguage());
       }
+      _trigger("alternativeAudioSwitch", e.switching);
+    }
+
+    protected function _onCurrentTimeChanged(e:TimeEvent):void{
+      log("currentTime changed:" + e.time);
+      _trigger("currentTimeChange", e.time);
+    }
+
+    protected function _onComplete(e:TimeEvent):void{
+      log("complete");
+      _trigger("complete");
+    }
+
+    protected function _onStateChanged(e:MediaPlayerStateChangeEvent):void{
+      log("state changed:" + e.state);
+      _trigger("stateChange", e.state);
     }
 
     protected function audioLanguage(languageIndex:int):String {
