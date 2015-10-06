@@ -9,7 +9,7 @@ require 'asunit4'
 ##
 # Set USE_FCSH to true in order to use FCSH for all compile tasks.
 #
-# You can also set this value by calling the :fcsh task 
+# You can also set this value by calling the :fcsh task
 # manually like:
 #
 #   rake fcsh run
@@ -44,6 +44,7 @@ mxmlc "bin/Simplayer-debug.swf" do |t|
   t.input = "src/Simplayer.as"
   t.static_link_runtime_shared_libraries = true
   t.debug = true
+  t.target_player = "14.0"
   t.library_path << 'lib/OSMF.swc'
 end
 
