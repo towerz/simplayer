@@ -5,25 +5,49 @@
     <script type="text/javascript" src="js/jquery.min.js"></script>
     <script type="text/javascript" src="js/swfobject.js"></script>
     <script>
+var callbacks = {
+    alternativeAudioSwitch: function (switching) {
+        if (switching) {
+            console.log('alternativeAudioSwitch: switching...');
+        } else {
+            console.log('alternativeAudioSwitch:', player.getCurrentAudioItem());
+        }
+    },
+    hasAlternativeAudioChanged: function (hasAlternativeAudio) {
+        console.log('hasAlternativeAudioChanged:', hasAlternativeAudio);
+    },
+    stateChange: function (state) {
+        console.log('stateChange:', state);
+    },
+    currentTimeChange: function(time) {
+        console.log('currentTime:', time);
+    },
+    complete: function() {
+        console.log('complete');
+    },
+};
+
+var playerCallback = function(eventName, args) {
+  if (eventName in callbacks) {
+    callbacks[eventName].apply(callbacks, args);
+  }
+};
 
 function play() {
     try {
         $('#stage').empty();
-        var flashvars = {width: 640, height: 360};
-        swfobject.embedSWF("bin/simplayer.swf", "stage", "640", "360", "10.0.0", "expressInstall.swf", flashvars);
+        var flashvars = {callback: 'playerCallback'};
+        var params = {bgColor: '#000000', allowFullScreen: true, allowFullScreenInteractive: true, allowScriptAccess: 'always', menu: false, quality: 'autohigh', wmode: 'gpu'};
+        swfobject.embedSWF("bin/simplayer.swf", "stage", "640", "360", "10.0.0", "expressInstall.swf", flashvars, params);
+        setTimeout(function() { window.player = document.getElementsByTagName('object')[0] }, 0)
     } catch (err) {
-        console.log('oh oh');
-        console.log(err);
+        console.warn('oh oh');
+        console.warn(err);
     }
 
     return false;
 }
     </script>
-    <style>
-#stage {
-    border: solid 1px black;
-}
-    </style>
 </head>
 
 <body><script>$(document).ready(play);</script>
