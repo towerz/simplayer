@@ -222,7 +222,7 @@ package {
 
     protected function log(message:String):void {
       trace(message);
-      ExternalInterface.available && ExternalInterface.call("console.log", message)
+      ExternalInterface.available && _parameters.debug && ExternalInterface.call("console.log", message)
     }
 
     protected function init():void {
