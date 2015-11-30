@@ -137,10 +137,16 @@ package {
     }
 
     protected function _isMuted():Boolean {
+      if (!_playerSprite) {
+        return false;
+      }
       return _playerSprite.mediaPlayer.muted;
     }
 
     protected function _isPlaying():Boolean {
+      if (!_playerSprite) {
+        return false;
+      }
       return _playerSprite.mediaPlayer.playing;
     }
 
@@ -152,14 +158,23 @@ package {
     }
 
     protected function _canPlay():Boolean {
+      if (!_playerSprite) {
+        return false;
+      }
       return _playerSprite.mediaPlayer.canPlay;
     }
 
     protected function _canPause():Boolean {
+      if (!_playerSprite) {
+        return false;
+      }
       return _playerSprite.mediaPlayer.canPause;
     }
 
     protected function _canSeek():Boolean {
+      if (!_playerSprite) {
+        return false;
+      }
       return _playerSprite.mediaPlayer.canSeek;
     }
 
