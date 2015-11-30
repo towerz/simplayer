@@ -71,7 +71,9 @@ package {
       ExternalInterface.addCallback("getDuration", _getDuration);
       ExternalInterface.addCallback("getPosition", _getPosition);
       ExternalInterface.addCallback("getVolume", _getVolume);
+      ExternalInterface.addCallback("getAudioItems", _getAudioItems);
       ExternalInterface.addCallback("getCurrentAudioItem", _getCurrentAudioItem);
+      ExternalInterface.addCallback("getCurrentAudioItemIndex", _getCurrentAudioItemIndex);
       ExternalInterface.addCallback("getAudioItem", _getAudioItem);
       ExternalInterface.addCallback("getAudioItemCount", _getAudioItemCount);
       ExternalInterface.addCallback("getBytesLoaded", _getBytesLoaded);
@@ -81,6 +83,7 @@ package {
       ExternalInterface.addCallback("canSeek", _canSeek);
       ExternalInterface.addCallback("isMuted", _isMuted);
       ExternalInterface.addCallback("isPlaying", _isPlaying);
+      ExternalInterface.addCallback("hasAlternativeAudio", _hasAlternativeAudio);
     }
 
     protected function _getBytesLoaded():Number {
@@ -101,6 +104,14 @@ package {
 
     protected function _getVolume(): Number {
       return _playerSprite.mediaPlayer.volume;
+    }
+
+    protected function _getAudioItems():Object {
+      var items: Object = {0: _getAudioItem(0)};
+      for (var i:int = 0; i <  _playerSprite.mediaPlayer.numAlternativeAudioStreams; i++) {
+        items[i + 1] = _getAudioItem(i + 1);
+      }
+      return items;
     }
 
     protected function _getAudioItem(index:int):Object {
@@ -131,6 +142,13 @@ package {
 
     protected function _isPlaying():Boolean {
       return _playerSprite.mediaPlayer.playing;
+    }
+
+    protected function _hasAlternativeAudio():Boolean {
+      if (!_playerSprite) {
+        return false;
+      }
+      return _playerSprite.mediaPlayer.hasAlternativeAudio;
     }
 
     protected function _canPlay():Boolean {
