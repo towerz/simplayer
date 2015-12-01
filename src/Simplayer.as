@@ -42,6 +42,8 @@ package {
     protected var _resource:URLResource;
     protected var _audios:Object;
 
+    protected var _seekTime:Number;
+
     public function Simplayer() {
       Security.allowDomain("*");
       Security.allowInsecureDomain("*");
@@ -204,8 +206,10 @@ package {
     }
 
     protected function _seek(time: Number):void {
-      if (_canSeek()) {
+      _seekTime = time;
+      if (_canSeek() && _playerSprite.mediaPlayer.canSeekTo(time)) {
         _playerSprite.mediaPlayer.seek(time);
+        _seekTime = -1;
       }
     }
 
@@ -340,6 +344,9 @@ package {
 
     protected function _onStateChanged(e:MediaPlayerStateChangeEvent):void{
       log("state changed:" + e.state);
+      if (e.state == "playing" && _seekTime > 0) {
+        _seek(_seekTime);
+      }
       _trigger("stateChange", e.state);
     }
 
