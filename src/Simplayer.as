@@ -14,6 +14,8 @@ package {
 
   import flash.ui.Keyboard;
 
+  import flash.utils.setTimeout;
+
   import org.osmf.events.AlternativeAudioEvent;
   import org.osmf.events.LoadEvent;
   import org.osmf.events.MediaElementEvent;
@@ -48,7 +50,7 @@ package {
       _callbackName = _parameters["callback"];
       _addExternalCallbacks();
       _addExternalGetters();
-      ("src" in _parameters) && _load(_parameters["src"]);
+      setTimeout(_pingJavascript, 50);
     }
 
     protected function _addEventListeners():void {
@@ -85,6 +87,11 @@ package {
       ExternalInterface.addCallback("isPlaying", _isPlaying);
       ExternalInterface.addCallback("hasAlternativeAudio", _hasAlternativeAudio);
     }
+
+    protected function _pingJavascript() : void {
+      _trigger("ready");
+      ("src" in _parameters) && _load(_parameters["src"]);
+    };
 
     protected function _getBytesLoaded():Number {
       return _playerSprite.mediaPlayer.bytesLoaded;
