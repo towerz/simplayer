@@ -31,6 +31,8 @@ package {
 
   import org.osmf.traits.MediaTraitType;
 
+  import org.osmf.utils.OSMFSettings;
+
   [SWF(width="640", height="360")]
   public class Simplayer extends MovieClip {
     protected var _parameters:Object;
@@ -52,6 +54,7 @@ package {
       _callbackName = _parameters["callback"];
       _addExternalCallbacks();
       _addExternalGetters();
+      OSMFSettings.enableStageVideo = _parameters["enableStageVideo"] || false;
       setTimeout(_pingJavascript, 50);
     }
 
