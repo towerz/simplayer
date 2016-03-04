@@ -246,7 +246,7 @@ package {
     };
 
     protected function _trigger(event : String, ...args) : void {
-      log("triggering " + event);
+      log("triggering " + event + " with " + args);
       if (ExternalInterface.available && _callbackName) {
         ExternalInterface.call(_callbackName, event, args);
       }
