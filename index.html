@@ -28,6 +28,9 @@ var callbacks = {
     error: function(error) {
         console.log('error', error);
     },
+    drmStateChange: function(error) {
+      console.log('drmStateChange', error);
+    }
 };
 
 var playerCallback = function(eventName, args) {

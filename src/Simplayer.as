@@ -17,6 +17,7 @@ package {
   import flash.utils.setTimeout;
 
   import org.osmf.events.AlternativeAudioEvent;
+  import org.osmf.events.DRMEvent;
   import org.osmf.events.LoadEvent;
   import org.osmf.events.MediaElementEvent;
   import org.osmf.events.MediaErrorEvent;
@@ -30,6 +31,7 @@ package {
   import org.osmf.media.MediaPlayerSprite;
   import org.osmf.media.URLResource;
 
+  import org.osmf.traits.DRMTrait;
   import org.osmf.traits.MediaTraitType;
 
   import org.osmf.utils.OSMFSettings;
@@ -270,6 +272,9 @@ package {
       var element:MediaElement = _mediaFactory.createMediaElement(_resource);
 
       element.addEventListener(MediaErrorEvent.MEDIA_ERROR, onError);
+      element.addEventListener(MediaElementEvent.TRAIT_ADD, onTraitAdd);
+      element.addEventListener(MediaElementEvent.TRAIT_REMOVE, onTraitRemove);
+
       log("has time trait: " + element.hasTrait(MediaTraitType.TIME));
 
       _playerSprite = new MediaPlayerSprite();
@@ -278,14 +283,35 @@ package {
       _playerSprite.mediaPlayer.autoPlay = true;
       _playerSprite.mediaPlayer.addEventListener(MediaPlayerCapabilityChangeEvent.HAS_ALTERNATIVE_AUDIO_CHANGE, hasAlternativeAudioChanged);
       _playerSprite.mediaPlayer.addEventListener(AlternativeAudioEvent.AUDIO_SWITCHING_CHANGE, alternativeAudioSwitchChanged);
+
       _playerSprite.width = _parameters.width || 640;
       _playerSprite.height = _parameters.height || 360;
       addChild(_playerSprite);
       _addEventListeners();
     }
 
+    protected function onTraitAdd(e:MediaElementEvent):void {
+      if (e.traitType == MediaTraitType.DRM) {
+          var drmTrait:DRMTrait = _playerSprite.media.getTrait(MediaTraitType.DRM) as DRMTrait;
+          drmTrait.addEventListener(DRMEvent.DRM_STATE_CHANGE, onDRMStateChange);
+      }
+    }
+
+    protected function onTraitRemove(e:MediaElementEvent):void {
+      if (e.traitType == MediaTraitType.DRM) {
+          var drmTrait:DRMTrait = _playerSprite.media.getTrait(MediaTraitType.DRM) as DRMTrait;
+          drmTrait.removeEventListener(DRMEvent.DRM_STATE_CHANGE, onDRMStateChange);
+      }
+    }
+
     protected function onError(e:MediaErrorEvent):void {
       _trigger("error", e.error);
+    }
+
+    protected function onDRMStateChange(event:DRMEvent):void {
+      if (event.mediaError.errorID == 3341 || event.mediaError.errorID == 3342) {
+        _trigger("drmStateChange", event.mediaError);
+      }
     }
 
     protected function keyUpHandler(e:KeyboardEvent):void {
