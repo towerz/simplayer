@@ -19,6 +19,7 @@ package {
   import org.osmf.events.AlternativeAudioEvent;
   import org.osmf.events.LoadEvent;
   import org.osmf.events.MediaElementEvent;
+  import org.osmf.events.MediaErrorEvent;
   import org.osmf.events.MediaPlayerCapabilityChangeEvent;
   import org.osmf.events.MediaPlayerStateChangeEvent;
   import org.osmf.events.TimeEvent;
@@ -268,6 +269,7 @@ package {
 
       var element:MediaElement = _mediaFactory.createMediaElement(_resource);
 
+      element.addEventListener(MediaErrorEvent.MEDIA_ERROR, onError);
       log("has time trait: " + element.hasTrait(MediaTraitType.TIME));
 
       _playerSprite = new MediaPlayerSprite();
@@ -280,6 +282,10 @@ package {
       _playerSprite.height = _parameters.height || 360;
       addChild(_playerSprite);
       _addEventListeners();
+    }
+
+    protected function onError(e:MediaErrorEvent):void {
+      _trigger("error", e.error);
     }
 
     protected function keyUpHandler(e:KeyboardEvent):void {

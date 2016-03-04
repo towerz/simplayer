@@ -25,6 +25,9 @@ var callbacks = {
     complete: function() {
         console.log('complete');
     },
+    error: function(error) {
+        console.log('error', error);
+    },
 };
 
 var playerCallback = function(eventName, args) {
