@@ -305,12 +305,12 @@ package {
     }
 
     protected function onError(e:MediaErrorEvent):void {
-      _trigger("error", e.error);
+      _trigger("error", { code: e.error.errorID, message: e.error.message });
     }
 
     protected function onDRMStateChange(event:DRMEvent):void {
       if (event.mediaError.errorID == 3341 || event.mediaError.errorID == 3342) {
-        _trigger("drmStateChange", event.mediaError);
+        _trigger("drmStateChange", { error: { code: event.mediaError.errorID, message: event.mediaError.message } });
       }
     }
 
